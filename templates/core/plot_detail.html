@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ plot.name }}{% endblock %}
+{% block content %}
+<div class="content-card">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0;">{{ plot.name }}</h2>
+        <div>
+            <a href="/plots/{{ plot.id }}/edit?shop={{ shop.shopify_domain }}" class="btn btn-outline">Edit</a>
+            {% if not dds_entries %}
+            <form method="post" action="/plots/{{ plot.id }}/delete?shop={{ shop.shopify_domain }}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this plot?')">Delete</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    <p style="color: #6d7175; font-size: 13px; margin: 4px 0 16px;">{{ plot.country }} &middot; {{ plot.get_plot_type_display }} &middot; {{ plot.area_hectares|default:"area unspecified" }} ha &middot; <span class="badge badge-{{ plot.country_risk }}">{{ plot.get_country_risk_display }}</span></p>
+
+    {% if plot.description %}<p>{{ plot.description }}</p>{% endif %}
+    {% if plot.supplier_name %}<p><strong>Supplier:</strong> {{ plot.supplier_name }} ({{ plot.supplier_country }})</p>{% endif %}
+
+    <h3 style="font-size: 14px; margin-top: 24px;">Coordinates</h3>
+    <pre style="background: #f6f6f7; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 12px;">{{ plot.coordinates }}</pre>
+</div>
+
+<div class="content-card">
+    <h2>Products using this plot ({{ products|length }})</h2>
+    {% if products %}
+    <ul style="margin: 0; padding-left: 20px;">
+        {% for p in products %}<li><a href="/products/{{ p.id }}?shop={{ shop.shopify_domain }}">{{ p.title }}</a></li>{% endfor %}
+    </ul>
+    {% else %}<p style="color: #6d7175; font-size: 14px;">No products linked to this plot yet.</p>{% endif %}
+</div>
+{% endblock %}

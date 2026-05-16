@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Import products CSV{% endblock %}
+{% block content %}
+<div class="content-card" style="max-width: 720px;">
+    <h2>Import product classifications from CSV</h2>
+    <p style="color: #6d7175; font-size: 14px;">Bulk-assign EUDR classification to many products at once. Match by Shopify product ID.</p>
+
+    {% if result %}
+    <div style="background: #f0f9f4; border-left: 4px solid #008060; padding: 12px 16px; border-radius: 8px; margin: 12px 0;">
+        <strong>Imported:</strong> {{ result.updated }} updated, {{ result.skipped }} skipped, {{ result.errors|length }} errors.
+        {% if result.errors %}
+        <details><summary>Show errors</summary><ul>{% for e in result.errors %}<li>{{ e }}</li>{% endfor %}</ul></details>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-row">
+            <label>CSV file</label>
+            <input type="file" name="csv_file" accept=".csv" required>
+        </div>
+        <p style="color: #6d7175; font-size: 13px;">
+            Expected columns (header row required): <code>shopify_product_id, is_in_scope, commodity, hs_code</code><br>
+            <code>is_in_scope</code> = <code>true</code> or <code>false</code>.<br>
+            <code>commodity</code> = one of <code>coffee, cocoa, cattle, palm_oil, rubber, soya, wood</code>.<br>
+            Optional column: <code>plot_ids</code> = pipe-separated plot IDs (e.g. <code>4|7|12</code>).
+        </p>
+        <button type="submit" class="btn btn-primary">Import</button>
+        <a href="/products?shop={{ shop.shopify_domain }}" class="btn btn-outline" style="margin-left: 8px;">Cancel</a>
+    </form>
+
+    <h3 style="margin-top: 24px; font-size: 14px;">Example CSV</h3>
+    <pre style="background: #f6f6f7; padding: 12px; border-radius: 6px; font-size: 12px; overflow-x: auto;">shopify_product_id,is_in_scope,commodity,hs_code,plot_ids
+7891234567890,true,coffee,0901.21,4|7
+7891234567891,true,cocoa,1801.00,12
+7891234567892,false,,,
+7891234567893,true,wood,4421.99,9</pre>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{
+  "eudr": {
+    "show_details": "Mostrar detalles de cumplimiento",
+    "commodity": "Materia prima",
+    "hs_code": "Código SA",
+    "country_of_production": "País de producción",
+    "dds_reference": "Declaración de diligencia debida",
+    "dds_verification": "Número de verificación",
+    "operator": "Operador"
+  }
+}

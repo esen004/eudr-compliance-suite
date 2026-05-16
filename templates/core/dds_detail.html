@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}DDS {{ dds.eu_reference_number|default:dds.id }}{% endblock %}
+{% block content %}
+<div class="content-card">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0;">DDS {{ dds.eu_reference_number|default:"(draft)" }}</h2>
+        <span class="badge badge-{{ dds.status }}" style="font-size: 14px;">{{ dds.get_status_display }}</span>
+    </div>
+    <p style="color: #6d7175; font-size: 13px; margin: 4px 0 16px;">Created {{ dds.created_at|date:"Y-m-d H:i" }}{% if dds.submitted_at %} &middot; Submitted {{ dds.submitted_at|date:"Y-m-d H:i" }}{% endif %}</p>
+
+    <table>
+        <tr><th>Product</th><td><a href="/products/{{ dds.eudr_product.id }}?shop={{ shop.shopify_domain }}">{{ dds.eudr_product.title }}</a></td></tr>
+        <tr><th>Country of production</th><td>{{ dds.country_of_production }}</td></tr>
+        <tr><th>Consignment</th><td>{{ dds.consignment_quantity }} {{ dds.quantity_unit }}</td></tr>
+        <tr><th>Risk level</th><td><span class="badge badge-{{ dds.risk_level }}">{{ dds.get_risk_level_display }}</span></td></tr>
+        <tr><th>Plots</th><td>{% for p in dds.plots.all %}<a href="/plots/{{ p.id }}?shop={{ shop.shopify_domain }}">{{ p.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td></tr>
+        {% if dds.risk_notes %}<tr><th>Risk notes</th><td>{{ dds.risk_notes|linebreaksbr }}</td></tr>{% endif %}
+        {% if dds.mitigation_measures %}<tr><th>Mitigation</th><td>{{ dds.mitigation_measures|linebreaksbr }}</td></tr>{% endif %}
+        {% if dds.eu_reference_number %}<tr><th>EU reference number</th><td><code>{{ dds.eu_reference_number }}</code></td></tr>{% endif %}
+        {% if dds.eu_verification_number %}<tr><th>EU verification number</th><td><code>{{ dds.eu_verification_number }}</code></td></tr>{% endif %}
+    </table>
+
+    <div style="margin-top: 16px;">
+        <a href="/dds/{{ dds.id }}/pdf?shop={{ shop.shopify_domain }}" class="btn btn-outline">Download PDF</a>
+        {% if dds.status != "withdrawn" and dds.status != "rejected" %}
+        <form method="post" action="/dds/{{ dds.id }}/withdraw?shop={{ shop.shopify_domain }}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Withdraw this DDS?')">Withdraw</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+{% if dds.status == "draft" %}
+<div class="content-card" style="max-width: 720px;">
+    <h2>Submit to EU Information System</h2>
+    <p style="color: #6d7175; font-size: 14px;">Submit this DDS via the EU TRACES Information System portal, then paste the reference numbers below to mark it as submitted.</p>
+    <form method="post" action="/dds/{{ dds.id }}/submit?shop={{ shop.shopify_domain }}">
+        {% csrf_token %}
+        <div class="form-row">
+            <label for="eu_reference_number">EU reference number</label>
+            <input id="eu_reference_number" name="eu_reference_number" type="text" required>
+        </div>
+        <div class="form-row">
+            <label for="eu_verification_number">EU verification number</label>
+            <input id="eu_verification_number" name="eu_verification_number" type="text">
+        </div>
+        <button type="submit" class="btn btn-primary">Mark as submitted</button>
+    </form>
+</div>
+{% endif %}
+{% endblock %}

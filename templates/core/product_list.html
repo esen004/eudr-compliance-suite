@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Products{% endblock %}
+{% block content %}
+<div class="content-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="margin: 0;">Products ({{ products|length }})</h2>
+        <div>
+            <a href="/products/bulk-classify?shop={{ shop.shopify_domain }}" class="btn btn-outline">Bulk classify</a>
+            <a href="/sync?shop={{ shop.shopify_domain }}" class="btn btn-primary" style="margin-left: 8px;">Sync from Shopify</a>
+        </div>
+    </div>
+
+    <form method="get" style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <input type="hidden" name="shop" value="{{ shop.shopify_domain }}">
+        <input type="text" name="q" value="{{ search }}" placeholder="Search products..." style="flex: 1;">
+        <select name="scope">
+            <option value="">All scopes</option>
+            <option value="in" {% if scope_filter == "in" %}selected{% endif %}>In EUDR scope</option>
+            <option value="out" {% if scope_filter == "out" %}selected{% endif %}>Out of scope</option>
+        </select>
+        <select name="compliance">
+            <option value="">All</option>
+            <option value="compliant" {% if compliance_filter == "compliant" %}selected{% endif %}>Compliant</option>
+            <option value="non_compliant" {% if compliance_filter == "non_compliant" %}selected{% endif %}>Non-compliant</option>
+        </select>
+        <button type="submit" class="btn btn-outline">Filter</button>
+    </form>
+
+    {% if products %}
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Commodity</th>
+                <th>HS code</th>
+                <th>In scope</th>
+                <th>Compliant</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in products %}
+            <tr>
+                <td><a href="/products/{{ p.id }}?shop={{ shop.shopify_domain }}">{{ p.title }}</a></td>
+                <td>{{ p.get_commodity_display|default:"-" }}</td>
+                <td>{{ p.hs_code|default:"-" }}</td>
+                <td>{% if p.is_in_scope %}<span class="badge badge-in_scope">Yes</span>{% else %}-{% endif %}</td>
+                <td>{% if p.is_compliant %}<span class="badge badge-compliant">Compliant</span>{% elif p.is_in_scope %}<span class="badge badge-non_compliant">Missing data</span>{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #6d7175; font-size: 14px;">No products synced yet. Click "Sync from Shopify" to import your catalog.</p>
+    {% endif %}
+</div>
+{% endblock %}

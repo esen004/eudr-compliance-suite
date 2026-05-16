@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}New DDS{% endblock %}
+{% block content %}
+<div class="content-card" style="max-width: 720px;">
+    <h2>Create Due Diligence Statement</h2>
+    <p style="color: #6d7175; font-size: 14px;">EUDR Article 4 requires a DDS per consignment placed on the EU market. Fill in details, then submit the EU Information System reference once available.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-row">
+            <label for="eudr_product">Product</label>
+            <select id="eudr_product" name="eudr_product" required>
+                <option value="">-- choose in-scope product --</option>
+                {% for p in products %}<option value="{{ p.id }}">{{ p.title }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="form-row-pair">
+            <div class="form-row">
+                <label for="consignment_quantity">Consignment quantity</label>
+                <input id="consignment_quantity" name="consignment_quantity" type="number" step="0.0001" required>
+            </div>
+            <div class="form-row">
+                <label for="quantity_unit">Unit</label>
+                <select id="quantity_unit" name="quantity_unit">
+                    <option value="kg">kg</option>
+                    <option value="m3">m3</option>
+                    <option value="units">units</option>
+                    <option value="liters">litres</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <label for="country_of_production">Country of production (ISO alpha-2)</label>
+            <input id="country_of_production" name="country_of_production" type="text" maxlength="2" required placeholder="BR">
+        </div>
+        <div class="form-row">
+            <label for="plots">Production plots</label>
+            <select id="plots" name="plots" multiple size="6" required>
+                {% for p in plots %}<option value="{{ p.id }}">{{ p.name }} ({{ p.country }})</option>{% endfor %}
+            </select>
+        </div>
+        <div class="form-row">
+            <label for="risk_level">Risk level</label>
+            <select id="risk_level" name="risk_level">
+                {% for key, label in country_risk_choices %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="form-row">
+            <label for="risk_notes">Risk assessment notes</label>
+            <textarea id="risk_notes" name="risk_notes" placeholder="Describe risk analysis (satellite verification, supplier audit, third-party certification, etc.)"></textarea>
+        </div>
+        <div class="form-row">
+            <label for="mitigation_measures">Mitigation measures</label>
+            <textarea id="mitigation_measures" name="mitigation_measures" placeholder="If risk is not negligible, describe mitigation steps taken before placing the product on the market."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create DDS draft</button>
+        <a href="/dds?shop={{ shop.shopify_domain }}" class="btn btn-outline" style="margin-left: 8px;">Cancel</a>
+    </form>
+</div>
+{% endblock %}

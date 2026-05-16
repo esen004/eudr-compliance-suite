@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Audit log{% endblock %}
+{% block content %}
+<div class="content-card">
+    <h2>Compliance audit log</h2>
+    <p style="color: #6d7175; font-size: 14px;">Every classification, plot edit, DDS submission and widget publish is logged for legal traceability. Showing last 200 events.</p>
+    {% if log %}
+    <table>
+        <thead><tr><th>When</th><th>Action</th><th>Product</th><th>DDS</th><th>Details</th></tr></thead>
+        <tbody>
+            {% for e in log %}
+            <tr>
+                <td>{{ e.created_at|date:"Y-m-d H:i" }}</td>
+                <td><code>{{ e.action }}</code></td>
+                <td>{{ e.eudr_product.title|default:"-"|truncatechars:30 }}</td>
+                <td>{% if e.dds %}<a href="/dds/{{ e.dds.id }}?shop={{ shop.shopify_domain }}">{{ e.dds.eu_reference_number|default:e.dds.id }}</a>{% else %}-{% endif %}</td>
+                <td style="font-size: 12px; color: #6d7175;">{{ e.details }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}<p style="color: #6d7175; font-size: 14px;">No audit events yet.</p>{% endif %}
+</div>
+{% endblock %}

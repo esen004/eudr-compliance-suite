@@ -1,0 +1,11 @@
+{
+  "eudr": {
+    "show_details": "Show compliance details",
+    "commodity": "Commodity",
+    "hs_code": "HS code",
+    "country_of_production": "Country of production",
+    "dds_reference": "Due Diligence Statement",
+    "dds_verification": "Verification number",
+    "operator": "Operator"
+  }
+}

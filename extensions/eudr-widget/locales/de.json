@@ -1,0 +1,11 @@
+{
+  "eudr": {
+    "show_details": "Konformitätsdetails anzeigen",
+    "commodity": "Rohstoff",
+    "hs_code": "HS-Code",
+    "country_of_production": "Produktionsland",
+    "dds_reference": "Sorgfaltserklärung (DDS)",
+    "dds_verification": "Verifizierungsnummer",
+    "operator": "Marktteilnehmer"
+  }
+}

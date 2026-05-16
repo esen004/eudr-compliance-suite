@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+{% if not operator_configured %}
+<div class="content-card" style="border-left: 4px solid #b98900; background: #fff8e1;">
+    <h2 style="margin: 0 0 6px;">Action required: complete your operator details</h2>
+    <p style="margin: 0 0 12px; color: #6d7175; font-size: 14px;">EUDR requires every operator placing relevant products on the EU market to be identified. Add your company name, address and EU country before generating Due Diligence Statements.</p>
+    <a href="/settings?shop={{ shop.shopify_domain }}" class="btn btn-primary">Configure operator</a>
+</div>
+{% endif %}
+
+<div class="metric-grid">
+    <div class="metric-card">
+        <h3>Products synced</h3>
+        <div class="value">{{ total_products }}</div>
+    </div>
+    <div class="metric-card">
+        <h3>In EUDR scope</h3>
+        <div class="value">{{ in_scope }}</div>
+    </div>
+    <div class="metric-card">
+        <h3>Compliant</h3>
+        <div class="value good">{{ compliant }}</div>
+    </div>
+    <div class="metric-card">
+        <h3>Non-compliant</h3>
+        <div class="value danger">{{ non_compliant }}</div>
+    </div>
+    <div class="metric-card">
+        <h3>Compliance rate</h3>
+        <div class="value {% if compliance_pct >= 90 %}good{% elif compliance_pct >= 50 %}warning{% else %}danger{% endif %}">{{ compliance_pct }}%</div>
+    </div>
+</div>
+
+<div class="metric-grid">
+    <div class="metric-card">
+        <h3>Geolocation plots</h3>
+        <div class="value">{{ total_plots }}</div>
+    </div>
+    <div class="metric-card">
+        <h3>DDS drafts</h3>
+        <div class="value">{{ dds_drafts }}</div>
+    </div>
+    <div class="metric-card">
+        <h3>DDS submitted</h3>
+        <div class="value good">{{ dds_submitted }}</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+    <div class="content-card">
+        <h2>Quick actions</h2>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            <a href="/sync?shop={{ shop.shopify_domain }}" class="btn btn-outline" style="justify-content: center;">Sync products from Shopify</a>
+            <a href="/products/bulk-classify?shop={{ shop.shopify_domain }}" class="btn btn-outline" style="justify-content: center;">Bulk classify products</a>
+            <a href="/plots/new?shop={{ shop.shopify_domain }}" class="btn btn-outline" style="justify-content: center;">Add geolocation plot</a>
+            <a href="/dds/new?shop={{ shop.shopify_domain }}" class="btn btn-outline" style="justify-content: center;">Create Due Diligence Statement</a>
+            <a href="/compliance?shop={{ shop.shopify_domain }}" class="btn btn-outline" style="justify-content: center;">View compliance report</a>
+        </div>
+    </div>
+
+    <div class="content-card">
+        <h2>Storefront widget</h2>
+        <p style="color: #6d7175; font-size: 14px; margin: 0 0 12px;">Publish EUDR compliance metafields to all in-scope products so the theme widget displays manufacturer, due diligence reference and country of production on each product page.</p>
+        <form method="post" action="/widget/publish?shop={{ shop.shopify_domain }}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary" style="justify-content: center; width: 100%;">Publish widget data</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

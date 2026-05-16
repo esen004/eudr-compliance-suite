@@ -1,0 +1,216 @@
+{% comment %}
+  EUDR Compliance Widget — theme app block
+  Renders the EUDR compliance information published by the EUDR Compliance Suite
+  app via product metafields. Merchants drag this block onto product pages from
+  the theme editor.
+
+  Only renders if the product is flagged as in-scope (metafield eudr.in_scope = "true").
+{% endcomment %}
+
+{% assign in_scope = product.metafields.eudr.in_scope.value %}
+{% if in_scope == "true" or in_scope == true %}
+
+{% assign commodity = product.metafields.eudr.commodity.value %}
+{% assign hs_code = product.metafields.eudr.hs_code.value %}
+{% assign country = product.metafields.eudr.country_of_production.value %}
+{% assign dds_ref = product.metafields.eudr.dds_reference.value %}
+{% assign dds_verify = product.metafields.eudr.dds_verification.value %}
+{% assign operator_name = product.metafields.eudr.operator_name.value %}
+{% assign operator_address = product.metafields.eudr.operator_address.value %}
+{% assign operator_country = product.metafields.eudr.operator_country.value %}
+{% assign statement = product.metafields.eudr.compliance_statement.value %}
+
+{% comment %}
+  Multi-language gate. Pro+ plans get full EU locale translation; Starter
+  merchants get hardcoded English fallback regardless of customer locale.
+  Driven by the merchant's plan (set in publish_widget_metafields).
+{% endcomment %}
+{% assign multi_lang = product.metafields.eudr.multi_language_enabled.value %}
+{% if multi_lang == "true" or multi_lang == true %}
+    {% assign show_details_label = 'eudr.show_details' | t | default: 'Show compliance details' %}
+    {% assign commodity_label = 'eudr.commodity' | t | default: 'Commodity' %}
+    {% assign hs_label = 'eudr.hs_code' | t | default: 'HS code' %}
+    {% assign country_label = 'eudr.country_of_production' | t | default: 'Country of production' %}
+    {% assign dds_label = 'eudr.dds_reference' | t | default: 'Due Diligence Statement' %}
+    {% assign verify_label = 'eudr.dds_verification' | t | default: 'Verification number' %}
+    {% assign operator_label = 'eudr.operator' | t | default: 'Operator' %}
+{% else %}
+    {% assign show_details_label = 'Show compliance details' %}
+    {% assign commodity_label = 'Commodity' %}
+    {% assign hs_label = 'HS code' %}
+    {% assign country_label = 'Country of production' %}
+    {% assign dds_label = 'Due Diligence Statement' %}
+    {% assign verify_label = 'Verification number' %}
+    {% assign operator_label = 'Operator' %}
+{% endif %}
+
+<div class="eudr-widget" style="
+    margin: {{ block.settings.margin_top }}px 0 {{ block.settings.margin_bottom }}px;
+    padding: {{ block.settings.padding }}px;
+    background: {{ block.settings.background_color }};
+    color: {{ block.settings.text_color }};
+    border-radius: {{ block.settings.border_radius }}px;
+    border: 1px solid {{ block.settings.border_color }};
+    font-size: 14px;
+    line-height: 1.5;
+">
+    {% if block.settings.show_title %}
+    <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 8px; font-size: {{ block.settings.title_size }}px;">
+        {% if block.settings.show_icon %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4z"/>
+            <path d="M9 12l2 2 4-4"/>
+        </svg>
+        {% endif %}
+        {{ block.settings.title | default: 'EU Deforestation Regulation (EUDR) — Compliant' }}
+    </div>
+    {% endif %}
+
+    {% if statement != blank %}
+    <div style="margin-bottom: 10px;">{{ statement }}</div>
+    {% endif %}
+
+    <details {% if block.settings.expanded_by_default %}open{% endif %} style="margin-top: 8px;">
+        <summary style="cursor: pointer; font-weight: 500; padding: 4px 0;">{{ show_details_label }}</summary>
+        <table style="width: 100%; margin-top: 8px; border-collapse: collapse;">
+            {% if commodity != blank %}
+            <tr><td style="padding: 4px 8px 4px 0; color: {{ block.settings.label_color }}; vertical-align: top; width: 40%;">{{ commodity_label }}</td><td style="padding: 4px 0;">{{ commodity | capitalize | replace: '_', ' ' }}</td></tr>
+            {% endif %}
+            {% if hs_code != blank %}
+            <tr><td style="padding: 4px 8px 4px 0; color: {{ block.settings.label_color }}; vertical-align: top;">{{ hs_label }}</td><td style="padding: 4px 0;"><code>{{ hs_code }}</code></td></tr>
+            {% endif %}
+            {% if country != blank %}
+            <tr><td style="padding: 4px 8px 4px 0; color: {{ block.settings.label_color }}; vertical-align: top;">{{ country_label }}</td><td style="padding: 4px 0;">{{ country }}</td></tr>
+            {% endif %}
+            {% if dds_ref != blank %}
+            <tr><td style="padding: 4px 8px 4px 0; color: {{ block.settings.label_color }}; vertical-align: top;">{{ dds_label }}</td><td style="padding: 4px 0;"><code>{{ dds_ref }}</code></td></tr>
+            {% endif %}
+            {% if dds_verify != blank %}
+            <tr><td style="padding: 4px 8px 4px 0; color: {{ block.settings.label_color }}; vertical-align: top;">{{ verify_label }}</td><td style="padding: 4px 0;"><code>{{ dds_verify }}</code></td></tr>
+            {% endif %}
+            {% if operator_name != blank %}
+            <tr><td style="padding: 4px 8px 4px 0; color: {{ block.settings.label_color }}; vertical-align: top;">{{ operator_label }}</td><td style="padding: 4px 0;">
+                {{ operator_name }}{% if operator_country != blank %} ({{ operator_country }}){% endif %}
+                {% if operator_address != blank %}<br><span style="color: {{ block.settings.label_color }};">{{ operator_address }}</span>{% endif %}
+            </td></tr>
+            {% endif %}
+        </table>
+    </details>
+</div>
+
+{% endif %}
+
+{% schema %}
+{
+  "name": "EUDR Compliance",
+  "target": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Display"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_title",
+      "label": "Show title",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title text",
+      "default": "EU Deforestation Regulation (EUDR) — Compliant"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_icon",
+      "label": "Show shield icon",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "expanded_by_default",
+      "label": "Expand details by default",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#f0f9f4"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#0c5132"
+    },
+    {
+      "type": "color",
+      "id": "label_color",
+      "label": "Label",
+      "default": "#5a7a64"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border",
+      "default": "#aee9d1"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "padding",
+      "label": "Padding",
+      "min": 8,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "title_size",
+      "label": "Title size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "margin_top",
+      "label": "Margin top",
+      "min": 0,
+      "max": 64,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "label": "Margin bottom",
+      "min": 0,
+      "max": 64,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    }
+  ]
+}
+{% endschema %}

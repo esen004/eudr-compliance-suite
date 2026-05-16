@@ -1,0 +1,8 @@
+name = "EUDR Compliance Widget"
+type = "theme"
+api_version = "2026-04"
+
+[capabilities]
+network_access = false
+block_progress = false
+api_access = false

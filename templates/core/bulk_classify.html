@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Bulk classify{% endblock %}
+{% block content %}
+<div class="content-card" style="max-width: 720px;">
+    <h2>Bulk classify products</h2>
+    <p style="color: #6d7175; font-size: 14px; margin: 0 0 16px;">Apply the same commodity and HS code to every product matching a vendor or product type. Useful for catalogs where coffee, cocoa or wood products share a common attribute.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-row-pair">
+            <div class="form-row">
+                <label for="product_type">Match product type</label>
+                <select id="product_type" name="product_type">
+                    <option value="">-- any --</option>
+                    {% for t in product_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="vendor">Match vendor</label>
+                <select id="vendor" name="vendor">
+                    <option value="">-- any --</option>
+                    {% for v in vendors %}<option value="{{ v }}">{{ v }}</option>{% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="form-row-pair">
+            <div class="form-row">
+                <label for="commodity">Set commodity</label>
+                <select id="commodity" name="commodity" required>
+                    <option value="">-- choose --</option>
+                    {% for key, label in commodity_choices %}
+                    <option value="{{ key }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="hs_code">Set HS code</label>
+                <input id="hs_code" name="hs_code" type="text" placeholder="e.g. 0901.21">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Apply to all matching products</button>
+        <a href="/products?shop={{ shop.shopify_domain }}" class="btn btn-outline" style="margin-left: 8px;">Cancel</a>
+    </form>
+</div>
+{% endblock %}

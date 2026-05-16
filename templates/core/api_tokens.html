@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}API tokens{% endblock %}
+{% block content %}
+<div class="content-card" style="max-width: 720px;">
+    <h2>REST API tokens</h2>
+    <p style="color: #6d7175; font-size: 14px;">Use these tokens to integrate EUDR Compliance Suite with your ERP, PIM, or supplier portal. Enterprise plan required.</p>
+
+    {% if new_token %}
+    <div style="background: #fff8e1; border-left: 4px solid #b98900; padding: 12px 16px; border-radius: 8px; margin: 12px 0;">
+        <strong>New token created — copy it now. You won't see the full value again.</strong>
+        <pre style="background: white; padding: 8px; margin-top: 8px; border-radius: 6px; font-size: 13px; word-break: break-all;">{{ new_token }}</pre>
+    </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-row-pair">
+            <div class="form-row">
+                <label>Token name</label>
+                <input type="text" name="name" placeholder="e.g. ERP integration" required>
+            </div>
+            <div class="form-row" style="display: flex; align-items: end;">
+                <button type="submit" name="action" value="create" class="btn btn-primary">+ Create token</button>
+            </div>
+        </div>
+    </form>
+
+    <h3 style="margin-top: 24px; font-size: 14px;">Active tokens ({{ tokens|length }})</h3>
+    {% if tokens %}
+    <table>
+        <thead><tr><th>Name</th><th>Last 4</th><th>Created</th><th>Last used</th><th></th></tr></thead>
+        <tbody>
+            {% for t in tokens %}
+            <tr>
+                <td>{{ t.name }}</td>
+                <td><code>...{{ t.last_4 }}</code></td>
+                <td>{{ t.created_at|date:"Y-m-d" }}</td>
+                <td>{{ t.last_used_at|date:"Y-m-d H:i"|default:"never" }}</td>
+                <td>
+                    <form method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="revoke">
+                        <input type="hidden" name="token_id" value="{{ t.id }}">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Revoke this token?')">Revoke</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #6d7175; font-size: 14px;">No tokens yet. Create one above to start using the API.</p>
+    {% endif %}
+
+    <h3 style="margin-top: 24px; font-size: 14px;">API reference</h3>
+    <pre style="background: #f6f6f7; padding: 12px; border-radius: 6px; font-size: 12px; overflow-x: auto;">Base URL:   {{ base_url }}/api/v1/
+Auth:       Authorization: Bearer &lt;your_token&gt;
+
+GET    /api/v1/products              List products (filter: ?scope=in&compliant=true)
+GET    /api/v1/products/{id}         Get single product
+PATCH  /api/v1/products/{id}         Update classification: {is_in_scope, commodity, hs_code, plot_ids}
+
+GET    /api/v1/plots                 List plots (filter: ?country=BR)
+POST   /api/v1/plots                 Create plot: {name, country, plot_type, coordinates, area_hectares, ...}
+
+GET    /api/v1/dds                   List DDS (filter: ?status=submitted)
+POST   /api/v1/dds                   Create DDS: {eudr_product_id, consignment_quantity, country_of_production, plot_ids, risk_level, eu_reference_number, ...}
+GET    /api/v1/dds/{id}              Get single DDS
+
+POST   /api/v1/widget/publish        Publish EUDR metafields to all in-scope products</pre>
+</div>
+{% endblock %}

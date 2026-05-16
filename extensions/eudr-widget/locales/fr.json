@@ -1,0 +1,11 @@
+{
+  "eudr": {
+    "show_details": "Afficher les détails de conformité",
+    "commodity": "Produit de base",
+    "hs_code": "Code SH",
+    "country_of_production": "Pays de production",
+    "dds_reference": "Déclaration de diligence raisonnée",
+    "dds_verification": "Numéro de vérification",
+    "operator": "Opérateur"
+  }
+}

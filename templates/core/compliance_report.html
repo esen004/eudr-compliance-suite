@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Compliance report{% endblock %}
+{% block content %}
+<div class="metric-grid">
+    <div class="metric-card"><h3>In-scope products</h3><div class="value">{{ in_scope_count }}</div></div>
+    <div class="metric-card"><h3>Compliant</h3><div class="value good">{{ compliant_count }}</div></div>
+    <div class="metric-card"><h3>Non-compliant</h3><div class="value danger">{{ non_compliant|length }}</div></div>
+</div>
+
+<div class="content-card">
+    <h2>Missing commodity / HS code ({{ missing_classification|length }})</h2>
+    {% if missing_classification %}
+    <ul style="margin: 0; padding-left: 20px;">{% for p in missing_classification %}<li><a href="/products/{{ p.id }}?shop={{ shop.shopify_domain }}">{{ p.title }}</a></li>{% endfor %}</ul>
+    {% else %}<p style="color: #6d7175; font-size: 14px;">All in-scope products have commodity classification.</p>{% endif %}
+</div>
+
+<div class="content-card">
+    <h2>Missing geolocation ({{ missing_geolocation|length }})</h2>
+    {% if missing_geolocation %}
+    <ul style="margin: 0; padding-left: 20px;">{% for p in missing_geolocation %}<li><a href="/products/{{ p.id }}?shop={{ shop.shopify_domain }}">{{ p.title }}</a></li>{% endfor %}</ul>
+    {% else %}<p style="color: #6d7175; font-size: 14px;">All in-scope products have geolocation plots linked.</p>{% endif %}
+</div>
+
+<div class="content-card">
+    <h2>Missing DDS ({{ missing_dds|length }})</h2>
+    {% if missing_dds %}
+    <ul style="margin: 0; padding-left: 20px;">{% for p in missing_dds %}<li><a href="/products/{{ p.id }}?shop={{ shop.shopify_domain }}">{{ p.title }}</a></li>{% endfor %}</ul>
+    {% else %}<p style="color: #6d7175; font-size: 14px;">All in-scope products have a submitted DDS.</p>{% endif %}
+</div>
+
+<p style="margin-top: 16px;"><a href="/compliance/audit?shop={{ shop.shopify_domain }}" class="btn btn-outline">View audit log</a></p>
+{% endblock %}

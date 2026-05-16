@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Operator settings{% endblock %}
+{% block content %}
+<div class="content-card" style="max-width: 720px;">
+    <h2>Operator details</h2>
+    <p style="color: #6d7175; font-size: 14px; margin: 0 0 16px;">EUDR Article 4 requires the operator placing relevant products on the EU market to be identified in every Due Diligence Statement. This information is also written to your storefront via product metafields.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-row">
+            <label for="operator_name">Company / operator name</label>
+            <input id="operator_name" name="operator_name" type="text" value="{{ shop.operator_name }}" required>
+        </div>
+        <div class="form-row">
+            <label for="operator_address">Address</label>
+            <textarea id="operator_address" name="operator_address" required>{{ shop.operator_address }}</textarea>
+        </div>
+        <div class="form-row-pair">
+            <div class="form-row">
+                <label for="operator_country">Country (ISO 3166-1 alpha-2)</label>
+                <input id="operator_country" name="operator_country" type="text" maxlength="2" value="{{ shop.operator_country }}" placeholder="DE" required>
+            </div>
+            <div class="form-row">
+                <label for="operator_eori">EU EORI number</label>
+                <input id="operator_eori" name="operator_eori" type="text" value="{{ shop.operator_eori }}" placeholder="DE123456789012">
+            </div>
+        </div>
+        <div class="form-row">
+            <label for="operator_email">Contact email</label>
+            <input id="operator_email" name="operator_email" type="email" value="{{ shop.operator_email }}" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="/billing/select?shop={{ shop.shopify_domain }}" class="btn btn-outline" style="margin-left: 8px;">Change plan</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}{% if editing %}Edit plot{% else %}New plot{% endif %}{% endblock %}
+{% block content %}
+<div class="content-card" style="max-width: 720px;">
+    <h2>{% if editing %}Edit geolocation plot{% else %}New geolocation plot{% endif %}</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-row">
+            <label for="name">Plot name</label>
+            <input id="name" name="name" type="text" value="{{ plot.name|default:'' }}" required>
+        </div>
+        <div class="form-row">
+            <label for="description">Description</label>
+            <textarea id="description" name="description">{{ plot.description|default:'' }}</textarea>
+        </div>
+        <div class="form-row-pair">
+            <div class="form-row">
+                <label for="country">Country (ISO alpha-2)</label>
+                <input id="country" name="country" type="text" maxlength="2" value="{{ plot.country|default:'' }}" placeholder="BR" required oninput="window._lookupRisk && _lookupRisk(this.value)">
+            </div>
+            <div class="form-row">
+                <label for="region">Region / province</label>
+                <input id="region" name="region" type="text" value="{{ plot.region|default:'' }}">
+            </div>
+        </div>
+        <div class="form-row-pair">
+            <div class="form-row">
+                <label for="plot_type">Plot type</label>
+                <select id="plot_type" name="plot_type" required>
+                    {% for key, label in plot_type_choices %}
+                    <option value="{{ key }}" {% if plot.plot_type == key %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="area_hectares">Area (hectares)</label>
+                <input id="area_hectares" name="area_hectares" type="number" step="0.0001" value="{{ plot.area_hectares|default:'' }}">
+            </div>
+        </div>
+        <div class="form-row">
+            <label for="coordinates">Coordinates</label>
+            <textarea id="coordinates" name="coordinates" required placeholder='Point: {"lat":-3.4653,"lng":-62.2159}&#10;Polygon: [{"lat":-3.46,"lng":-62.21},{"lat":-3.47,"lng":-62.22},{"lat":-3.48,"lng":-62.20},{"lat":-3.46,"lng":-62.21}]'>{% if plot.coordinates %}{{ plot.coordinates|safe }}{% endif %}</textarea>
+            <small style="color: #6d7175; font-size: 12px;">Point plots (&le;4 ha): single lat/lng JSON. Polygon plots (&gt;4 ha): JSON array of lat/lng objects forming a closed ring.</small>
+        </div>
+        <div class="form-row-pair">
+            <div class="form-row">
+                <label for="country_risk">Country risk classification</label>
+                <select id="country_risk" name="country_risk">
+                    {% for key, label in country_risk_choices %}
+                    <option value="{{ key }}" {% if plot.country_risk == key %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="supplier_name">Supplier name (optional)</label>
+                <input id="supplier_name" name="supplier_name" type="text" value="{{ plot.supplier_name|default:'' }}">
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">{% if editing %}Save changes{% else %}Create plot{% endif %}</button>
+        <a href="/plots?shop={{ shop.shopify_domain }}" class="btn btn-outline" style="margin-left: 8px;">Cancel</a>
+    </form>
+</div>
+
+<script>
+// Country-risk auto-lookup. Fetches EC-published risk tier on country change.
+let _riskDebounce;
+function _lookupRisk(code) {
+    code = (code || "").trim().toUpperCase();
+    if (code.length !== 2) return;
+    clearTimeout(_riskDebounce);
+    _riskDebounce = setTimeout(async () => {
+        try {
+            const r = await fetch(`/plots/country-risk?country=${code}&shop={{ shop.shopify_domain }}`);
+            const data = await r.json();
+            if (data.risk) {
+                const sel = document.getElementById("country_risk");
+                if (sel) sel.value = data.risk;
+            }
+        } catch (e) { /* silent */ }
+    }, 300);
+}
+window._lookupRisk = _lookupRisk;
+</script>
+{% endblock %}

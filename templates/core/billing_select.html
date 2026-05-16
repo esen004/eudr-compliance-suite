@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Choose Plan{% endblock %}
+{% block content %}
+<h2 style="margin: 0 0 8px;">Choose your plan</h2>
+<p style="color: #6d7175; margin: 0 0 24px;">14-day free trial on all plans. Cancel anytime. EUDR enforcement starts Dec 30, 2026.</p>
+
+{% if error %}
+<div class="content-card" style="border-left: 4px solid #d72c0d; background: #fed3d1;">
+    <p style="margin: 0; color: #8e1f0b;">{{ error }}</p>
+</div>
+{% endif %}
+
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+    {% for key, plan in plans.items %}
+    <div class="content-card" style="{% if key == current_plan %}border: 2px solid #008060;{% endif %} text-align: center; padding: 30px 20px;">
+        <h3 style="margin: 0 0 4px; font-size: 18px;">{{ plan.name }}</h3>
+        <div style="font-size: 36px; font-weight: 700; margin: 12px 0;">${{ plan.price|floatformat:0 }}</div>
+        <div style="font-size: 13px; color: #6d7175; margin-bottom: 20px;">per month</div>
+
+        <div style="text-align: left; font-size: 14px; color: #202223; line-height: 2;">
+            {% if plan.sku_limit %}Up to {{ plan.sku_limit }} products{% else %}Unlimited products{% endif %}<br>
+            {% if plan.dds_limit_monthly %}{{ plan.dds_limit_monthly }} DDS / month{% else %}Unlimited DDS{% endif %}<br>
+            {% if plan.plot_limit %}{{ plan.plot_limit }} geolocation plots{% else %}Unlimited plots{% endif %}<br>
+            Storefront widget &amp; metafields<br>
+            CSV import (products + plots)<br>
+            Country risk auto-lookup<br>
+            Audit log<br>
+            {% if "bulk_dds" in plan.features %}Bulk DDS generation<br>{% endif %}
+            {% if "geolocation_polygons" in plan.features %}Polygon plots (&gt;4 ha)<br>{% endif %}
+            {% if "risk_assessment" in plan.features %}Risk assessment tools<br>{% endif %}
+            {% if "multi_language" in plan.features %}Multi-language widget (EN/DE/FR/ES/IT)<br>{% endif %}
+            {% if "pdf_export" in plan.features %}PDF export of DDS<br>{% endif %}
+            {% if "api_access" in plan.features %}REST API access<br>{% endif %}
+            {% if "priority_support" in plan.features %}Priority email support<br>{% endif %}
+            {% if key == "enterprise" %}
+            <span style="color:#6d7175; font-size: 12px; line-height: 1.4; display: block; margin-top: 8px;">Coming: multi-store linking (Q3 2026), EU TRACES Info System integration (Q4 2026 — pending EU API release)</span>
+            {% endif %}
+        </div>
+
+        <form method="post" style="margin-top: 16px;">
+            {% csrf_token %}
+            <input type="hidden" name="plan" value="{{ key }}">
+            {% if key == current_plan %}
+            <button disabled class="btn btn-outline" style="width: 100%; justify-content: center; opacity: 0.5;">Current plan</button>
+            {% else %}
+            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                {% if current_plan == "starter" %}Start free trial{% else %}Switch plan{% endif %}
+            </button>
+            {% endif %}
+        </form>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

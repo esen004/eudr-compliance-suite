@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Bulk DDS{% endblock %}
+{% block content %}
+<div class="content-card" style="max-width: 720px;">
+    <h2>Bulk-generate Due Diligence Statements</h2>
+    <p style="color: #6d7175; font-size: 14px;">Create draft DDS for many in-scope products at once with shared metadata (country, risk level, plots, mitigation). Edit individual drafts afterward.</p>
+
+    {% if result %}
+    <div style="background: #f0f9f4; border-left: 4px solid #008060; padding: 12px 16px; border-radius: 8px; margin: 12px 0;">
+        <strong>Created {{ result.created }} draft DDS.</strong> <a href="/dds?shop={{ shop.shopify_domain }}">Review them</a>.
+    </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-row">
+            <label>Select products (Ctrl/Cmd-click for multiple)</label>
+            <select name="product_ids" multiple size="10" required>
+                {% for p in products %}
+                <option value="{{ p.id }}">{{ p.title }} - {{ p.get_commodity_display }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-row-pair">
+            <div class="form-row">
+                <label>Consignment quantity (each)</label>
+                <input type="number" name="consignment_quantity" step="0.0001" required>
+            </div>
+            <div class="form-row">
+                <label>Unit</label>
+                <select name="quantity_unit">
+                    <option value="kg">kg</option>
+                    <option value="m3">m3</option>
+                    <option value="units">units</option>
+                    <option value="liters">litres</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <label>Country of production (ISO alpha-2)</label>
+            <input type="text" name="country_of_production" maxlength="2" required placeholder="ET">
+        </div>
+        <div class="form-row">
+            <label>Plots (apply to every generated DDS)</label>
+            <select name="plot_ids" multiple size="6">
+                {% for p in plots %}
+                <option value="{{ p.id }}">{{ p.name }} ({{ p.country }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-row">
+            <label>Risk level</label>
+            <select name="risk_level">
+                {% for k, v in country_risk_choices %}
+                <option value="{{ k }}">{{ v }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-row">
+            <label>Risk notes (shared)</label>
+            <textarea name="risk_notes"></textarea>
+        </div>
+        <div class="form-row">
+            <label>Mitigation measures (shared)</label>
+            <textarea name="mitigation_measures"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Generate drafts</button>
+        <a href="/dds?shop={{ shop.shopify_domain }}" class="btn btn-outline" style="margin-left: 8px;">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{
+  "eudr": {
+    "show_details": "Mostra dettagli di conformità",
+    "commodity": "Materia prima",
+    "hs_code": "Codice SA",
+    "country_of_production": "Paese di produzione",
+    "dds_reference": "Dichiarazione di dovuta diligenza",
+    "dds_verification": "Numero di verifica",
+    "operator": "Operatore"
+  }
+}
