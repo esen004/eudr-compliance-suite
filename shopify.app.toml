@@ -1,19 +1,19 @@
 # Placeholder — replace client_id after creating new Shopify Partner Dashboard app
 client_id = "REPLACE_WITH_NEW_APP_CLIENT_ID"
 name = "EUDR Compliance Suite"
-application_url = "https://REPLACE_WITH_RENDER_URL.onrender.com"
+application_url = "https://eudr-compliance.onrender.com"
 embedded = true
 
 [access_scopes]
 scopes = "read_products,write_products,read_locales"
 
 [auth]
-redirect_urls = ["https://REPLACE_WITH_RENDER_URL.onrender.com/auth/callback"]
+redirect_urls = ["https://eudr-compliance.onrender.com/auth/callback"]
 
 [webhooks]
 api_version = "2026-04"
 
 [webhooks.privacy_compliance]
-customer_data_request_url = "https://REPLACE_WITH_RENDER_URL.onrender.com/webhooks/customers-data-request"
-customer_deletion_url = "https://REPLACE_WITH_RENDER_URL.onrender.com/webhooks/customers-redact"
-shop_deletion_url = "https://REPLACE_WITH_RENDER_URL.onrender.com/webhooks/shop-redact"
+customer_data_request_url = "https://eudr-compliance.onrender.com/webhooks/customers-data-request"
+customer_deletion_url = "https://eudr-compliance.onrender.com/webhooks/customers-redact"
+shop_deletion_url = "https://eudr-compliance.onrender.com/webhooks/shop-redact"
