@@ -80,6 +80,34 @@ def _is_valid_shop(s):
     return bool(s) and s.endswith(".myshopify.com") and "/" not in s and " " not in s
 
 
+def _resolve_shop_domain(request):
+    """Try every signal Shopify sends to identify the shop domain.
+
+    Order: explicit ?shop= param, JWT iss claim (via middleware), then
+    base64-decoded ?host= param (admin.shopify.com/store/{handle}).
+    """
+    import base64 as _b64
+    s = (request.GET.get("shop", "") or "").strip()
+    if s:
+        return s
+    s = getattr(request, "shopify_shop_domain", None)
+    if s:
+        return s
+    host = (request.GET.get("host", "") or "").strip()
+    if host:
+        try:
+            padded = host + "=" * (4 - len(host) % 4)
+            decoded = _b64.urlsafe_b64decode(padded).decode("utf-8", errors="ignore")
+            # decoded format: admin.shopify.com/store/{handle}
+            if "/store/" in decoded:
+                handle = decoded.rsplit("/store/", 1)[-1].split("/", 1)[0]
+                if handle:
+                    return f"{handle}.myshopify.com"
+        except Exception:
+            pass
+    return ""
+
+
 def _require_shop(view_func):
     def wrapper(request, *args, **kwargs):
         # Bounce page pattern — embedded auth requirement
@@ -232,7 +260,11 @@ def dashboard(request):
     """Dashboard — 200 response with App Bridge tags for Shopify's checker."""
     shop = _get_shop(request)
     if not shop:
-        shop_domain = request.GET.get("shop", "").strip()
+        # No Shop record found. Try every signal Shopify might send (?shop=,
+        # JWT iss, base64 host) to identify which store wants to install.
+        # If we can name a valid shop, kick off OAuth — even if Shopify thinks
+        # the app is "installed" on their side, our callback creates the DB row.
+        shop_domain = _resolve_shop_domain(request)
         if _is_valid_shop(shop_domain):
             return render(request, "exit_iframe.html", {
                 "redirect_url": f"/auth/install?shop={shop_domain}",
