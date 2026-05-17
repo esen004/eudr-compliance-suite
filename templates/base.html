@@ -223,7 +223,6 @@ textarea { min-height: 80px; resize: vertical; font-family: inherit; }
 
     <div class="sidebar-foot">
         <strong>{{ shop.store_name|default:shop.shopify_domain|truncatechars:24 }}</strong>
-        {{ shop.operator_country|default:"—" }} &middot; Plan: {{ shop.plan|capfirst }}
     </div>
 </aside>
 {% endif %}
