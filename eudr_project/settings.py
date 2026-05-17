@@ -154,6 +154,13 @@ EUDR_PLANS = {
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
+# CRITICAL for Shopify embedded apps: Django defaults `Cross-Origin-Opener-Policy`
+# to "same-origin" which BLOCKS the iframe breakout pattern (exit_iframe.html
+# trying to navigate the top window). Set to None so the header is not emitted.
+# Shopify admin's own COEP/COOP rules then take over (which permit the breakout).
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+SECURE_REFERRER_POLICY = None
+
 CSRF_TRUSTED_ORIGINS = [
     os.environ.get("SHOPIFY_APP_URL", "https://localhost:8000"),
     "https://admin.shopify.com",
