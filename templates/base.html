@@ -1,105 +1,262 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EUDR Compliance — {% block title %}Dashboard{% endblock %}</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EUDR Compliance Suite — {% block title %}Dashboard{% endblock %}</title>
 
-    <meta name="shopify-api-key" content="{{ SHOPIFY_API_KEY }}" />
-    <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
+<meta name="shopify-api-key" content="{{ SHOPIFY_API_KEY }}" />
+<script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
 
-    <link rel="stylesheet" href="https://unpkg.com/@shopify/polaris@13/build/esm/styles.css">
-    <script type="module">
-        import 'https://cdn.shopify.com/shopifycloud/web-components/polaris.js';
-    </script>
+<style>
+:root {
+    --forest-dark: #06371f;
+    --forest: #1b5e3f;
+    --forest-med: #2d6a4f;
+    --forest-light: #d4f1e0;
+    --forest-bg: #f4faf6;
+    --leaf-accent: #74c69d;
+    --amber: #c9881f;
+    --amber-bg: #fff4d6;
+    --rust: #b53a1d;
+    --rust-bg: #fde0d6;
+    --slate: #5a6a64;
+    --slate-light: #8ea59c;
+    --border: #d8e6dd;
+    --paper: #ffffff;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--forest-bg); color: var(--forest-dark); }
+a { color: var(--forest); text-decoration: none; }
+a:hover { text-decoration: underline; }
 
-    <style>
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'San Francisco', 'Segoe UI', Roboto, sans-serif; background-color: #f6f6f7; }
-        .app-wrapper { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .metric-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .metric-card h3 { margin: 0 0 4px; font-size: 13px; color: #6d7175; font-weight: 500; }
-        .metric-card .value { font-size: 28px; font-weight: 600; color: #202223; }
-        .metric-card .value.good { color: #008060; }
-        .metric-card .value.warning { color: #b98900; }
-        .metric-card .value.danger { color: #d72c0d; }
-        .nav-tabs { display: flex; gap: 4px; background: white; padding: 4px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); flex-wrap: wrap; }
-        .nav-tabs a { padding: 8px 16px; border-radius: 8px; text-decoration: none; color: #6d7175; font-size: 14px; font-weight: 500; }
-        .nav-tabs a.active { background: #008060; color: white; }
-        .nav-tabs a:hover:not(.active) { background: #f1f1f1; }
-        .content-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 16px; }
-        .content-card h2 { margin: 0 0 16px; font-size: 16px; font-weight: 600; }
-        table { width: 100%; border-collapse: collapse; }
-        table th { text-align: left; padding: 8px 12px; font-size: 12px; color: #6d7175; font-weight: 500; border-bottom: 1px solid #e1e3e5; }
-        table td { padding: 10px 12px; font-size: 14px; border-bottom: 1px solid #f1f1f1; }
-        .btn { display: inline-flex; align-items: center; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; text-decoration: none; cursor: pointer; border: none; }
-        .btn-primary { background: #008060; color: white; }
-        .btn-primary:hover { background: #006e52; }
-        .btn-outline { background: white; color: #202223; border: 1px solid #c9cccf; }
-        .btn-outline:hover { background: #f6f6f7; }
-        .btn-danger { background: #d72c0d; color: white; }
-        .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; }
-        .badge-compliant, .badge-verified, .badge-submitted { background: #aee9d1; color: #0c5132; }
-        .badge-non_compliant, .badge-rejected, .badge-draft { background: #fed3d1; color: #8e1f0b; }
-        .badge-in_scope { background: #dfe3fb; color: #3b5998; }
-        .badge-low { background: #aee9d1; color: #0c5132; }
-        .badge-standard { background: #ffd79d; color: #7c5e00; }
-        .badge-high { background: #fed3d1; color: #8e1f0b; }
-        .badge-withdrawn { background: #e4e5e7; color: #6d7175; }
-        label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; color: #202223; }
-        input, select, textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #c9cccf; border-radius: 6px; font-size: 14px; font-family: inherit; }
-        textarea { min-height: 80px; resize: vertical; }
-        .form-row { margin-bottom: 14px; }
-        .form-row-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    </style>
+.layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+
+.sidebar { background: var(--forest-dark); color: #d4f1e0; padding: 24px 0; }
+.sidebar-brand { padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; }
+.sidebar-brand .logo { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; color: #fff; }
+.sidebar-brand .logo svg { color: var(--leaf-accent); }
+.sidebar-brand .sub { font-size: 11px; color: var(--slate-light); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+.sidebar nav a { display: flex; align-items: center; gap: 10px; padding: 10px 24px; color: #b8d5c5; font-size: 14px; cursor: pointer; border-left: 3px solid transparent; }
+.sidebar nav a:hover { background: rgba(255,255,255,0.05); color: #fff; text-decoration: none; }
+.sidebar nav a.active { background: rgba(255,255,255,0.08); color: #fff; border-left-color: var(--leaf-accent); font-weight: 600; }
+.sidebar nav .section-label { padding: 16px 24px 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--slate-light); }
+.sidebar-foot { margin-top: 32px; padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 11px; color: var(--slate-light); }
+.sidebar-foot strong { color: var(--leaf-accent); display: block; font-size: 13px; }
+
+.main { padding: 32px 40px; max-width: 1200px; }
+.main h1 { margin: 0 0 4px; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+.main .subtitle { color: var(--slate); font-size: 14px; margin-bottom: 24px; }
+
+.countdown-hero { background: linear-gradient(135deg, var(--forest-dark) 0%, var(--forest-med) 100%); border-radius: 16px; padding: 28px 32px; color: #fff; margin-bottom: 24px; display: grid; grid-template-columns: 2fr 1fr; gap: 32px; position: relative; overflow: hidden; }
+.countdown-hero::before { content: ''; position: absolute; right: -40px; top: -40px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(116,198,157,0.25), transparent 70%); border-radius: 50%; }
+.countdown-hero h2 { margin: 0 0 6px; font-size: 20px; font-weight: 700; }
+.countdown-hero p { margin: 0; font-size: 13px; color: #b8d5c5; line-height: 1.6; }
+.countdown-hero .law-tag { display: inline-block; background: rgba(116,198,157,0.2); color: var(--leaf-accent); font-size: 10px; padding: 3px 8px; border-radius: 4px; letter-spacing: 1px; font-weight: 600; margin-bottom: 10px; text-transform: uppercase; }
+.countdown-clock { text-align: center; position: relative; z-index: 1; }
+.countdown-clock .days { font-size: 56px; font-weight: 800; line-height: 1; color: var(--leaf-accent); }
+.countdown-clock .label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #b8d5c5; margin-top: 4px; }
+.countdown-clock .date { font-size: 12px; margin-top: 12px; color: #d4f1e0; }
+
+.score-grid { display: grid; grid-template-columns: auto 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.score-ring-card { background: var(--paper); border: 1px solid var(--border); border-radius: 12px; padding: 24px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 200px; }
+.ring { position: relative; width: 130px; height: 130px; display: flex; align-items: center; justify-content: center; }
+.ring svg { transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 10; }
+.ring .track { stroke: var(--forest-light); }
+.ring .progress { stroke: var(--forest); stroke-linecap: round; transition: stroke-dashoffset 1s; }
+.ring .pct { position: absolute; font-size: 26px; font-weight: 700; color: var(--forest-dark); }
+.ring .pct small { display: block; font-size: 10px; color: var(--slate); text-transform: uppercase; letter-spacing: 1px; font-weight: 500; }
+.score-ring-card .caption { margin-top: 12px; font-size: 12px; color: var(--slate); }
+
+.stat-card, .metric-card { background: var(--paper); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; justify-content: space-between; }
+.stat-card .icon, .metric-card .icon { width: 32px; height: 32px; display:flex; align-items:center; justify-content:center; border-radius: 8px; }
+.stat-card h3, .metric-card h3 { margin: 12px 0 4px; font-size: 11px; color: var(--slate); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
+.stat-card .num, .metric-card .value { font-size: 26px; font-weight: 700; color: var(--forest-dark); }
+.stat-card .num.warn, .metric-card .value.warning { color: var(--amber); }
+.stat-card .num.bad, .metric-card .value.danger { color: var(--rust); }
+.stat-card .num.good, .metric-card .value.good { color: var(--forest); }
+.stat-card .delta { font-size: 11px; color: var(--slate); margin-top: 4px; }
+.stat-card .delta.up { color: var(--forest); }
+
+.icon-leaf { background: var(--forest-light); color: var(--forest); }
+.icon-amber { background: var(--amber-bg); color: var(--amber); }
+.icon-rust { background: var(--rust-bg); color: var(--rust); }
+
+.metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.grid-2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; }
+
+.panel, .content-card { background: var(--paper); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.panel h2, .content-card h2 { margin: 0 0 16px; font-size: 15px; font-weight: 700; color: var(--forest-dark); }
+.panel h2 .article-ref { font-size: 10px; background: var(--forest-light); color: var(--forest); padding: 3px 8px; border-radius: 4px; letter-spacing: 0.5px; font-weight: 600; }
+
+table { width: 100%; border-collapse: collapse; }
+table th { text-align: left; padding: 8px 12px; font-size: 10px; color: var(--slate); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid var(--border); }
+table td { padding: 12px 12px; font-size: 13px; border-bottom: 1px solid #f0f5f2; }
+table tr:hover td { background: var(--forest-bg); }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer; border: none; font-family: inherit; }
+.btn-primary { background: var(--forest); color: #fff; }
+.btn-primary:hover { background: var(--forest-dark); text-decoration: none; }
+.btn-outline { background: var(--paper); color: var(--forest-dark); border: 1px solid var(--border); }
+.btn-outline:hover { background: var(--forest-bg); text-decoration: none; }
+.btn-danger { background: var(--rust); color: #fff; }
+
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.badge-compliant, .badge-verified, .badge-submitted, .badge-low { background: var(--forest-light); color: var(--forest); }
+.badge-noncompliant, .badge-non_compliant, .badge-rejected, .badge-high { background: var(--rust-bg); color: var(--rust); }
+.badge-draft, .badge-standard { background: var(--amber-bg); color: var(--amber); }
+.badge-in_scope { background: #e0eff5; color: #1a6b8c; }
+.badge-withdrawn { background: #ececec; color: #6a6a6a; }
+
+.commodity-pill { display: inline-flex; align-items: center; gap: 5px; background: #fcf6e8; color: #7a5a1f; padding: 3px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.commodity-pill.coffee { background: #efe2cc; color: #5e3b15; }
+.commodity-pill.cocoa { background: #e3d2c4; color: #4a2818; }
+.commodity-pill.wood { background: #e0ddb4; color: #4d4517; }
+.commodity-pill.rubber { background: #d8d8d8; color: #2e2e2e; }
+.commodity-pill.palm_oil { background: #faf2c9; color: #6b5a07; }
+.commodity-pill.soya { background: #e3f0c8; color: #3d5012; }
+.commodity-pill.cattle { background: #ead8c8; color: #5a3a23; }
+
+label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: var(--forest-dark); }
+input, select, textarea { width: 100%; box-sizing: border-box; padding: 9px 11px; border: 1px solid var(--border); border-radius: 7px; font-size: 13px; font-family: inherit; background: var(--paper); }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--forest); box-shadow: 0 0 0 3px rgba(27,94,63,0.15); }
+textarea { min-height: 80px; resize: vertical; font-family: inherit; }
+.form-row { margin-bottom: 14px; }
+.form-row-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.alert { background: var(--amber-bg); border-left: 4px solid var(--amber); padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 12px; align-items: flex-start; }
+.alert svg { color: var(--amber); flex-shrink: 0; }
+.alert h3 { margin: 0 0 4px; font-size: 14px; font-weight: 700; color: var(--forest-dark); }
+.alert p { margin: 0; font-size: 13px; color: var(--slate); line-height: 1.5; }
+
+.map-preview { background: linear-gradient(135deg, #c8e6d4 0%, #a8d4ba 50%, #92c4a5 100%); border-radius: 12px; height: 220px; position: relative; overflow: hidden; border: 1px solid var(--border); }
+.map-preview::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent 0 24px, rgba(255,255,255,0.06) 24px 48px); }
+.map-pin { position: absolute; width: 30px; height: 30px; transform: translate(-50%,-100%); color: var(--forest-dark); z-index: 2; }
+.map-pin .dot { position: absolute; bottom:0; left: 50%; transform: translate(-50%,50%); width: 12px; height: 12px; background: var(--forest-dark); border-radius: 50%; box-shadow: 0 0 0 4px rgba(27,94,63,0.25); animation: pulse 2s infinite; }
+.map-pin .label { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--paper); color: var(--forest-dark); padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 600; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+@keyframes pulse { 0%,100%{ box-shadow: 0 0 0 4px rgba(27,94,63,0.25);} 50%{ box-shadow: 0 0 0 10px rgba(27,94,63,0.0);} }
+
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 6px; top: 6px; bottom: 6px; width: 2px; background: var(--border); }
+.timeline-item { position: relative; padding: 4px 0 16px; font-size: 13px; }
+.timeline-item::before { content: ''; position: absolute; left: -22px; top: 8px; width: 10px; height: 10px; border-radius: 50%; background: var(--forest); border: 2px solid var(--paper); box-shadow: 0 0 0 2px var(--forest); }
+.timeline-item .when { color: var(--slate); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+.timeline-item .what { color: var(--forest-dark); font-weight: 500; }
+
+.kv-grid > div { display: grid; grid-template-columns: 200px 1fr; padding: 10px 0; border-bottom: 1px solid #f0f5f2; font-size: 13px; }
+.kv-grid > div:last-child { border-bottom: none; }
+.kv-grid > div > strong { color: var(--slate); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; align-self: center; }
+
+.search-bar { display: flex; gap: 8px; margin-bottom: 16px; }
+.search-bar input { flex: 1; }
+.search-bar select { width: 180px; }
+
+.plan-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.plan-card { background: var(--paper); border: 1px solid var(--border); border-radius: 12px; padding: 24px 22px; position: relative; }
+.plan-card.current { border-color: var(--forest); box-shadow: 0 0 0 3px rgba(27,94,63,0.1); }
+.plan-card .badge-current { position: absolute; top: -10px; left: 22px; background: var(--forest); color:#fff; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+.plan-card h3 { margin: 0 0 4px; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--slate); }
+.plan-card .price { font-size: 36px; font-weight: 800; color: var(--forest-dark); margin: 8px 0 0; }
+.plan-card .price small { font-size: 13px; color: var(--slate); font-weight: 500; }
+.plan-card ul { margin: 16px 0; padding: 0; list-style: none; }
+.plan-card ul li { padding: 5px 0; font-size: 13px; color: var(--forest-dark); display: flex; gap: 6px; align-items: flex-start; }
+.plan-card ul li::before { content: '✓'; color: var(--forest); font-weight: 700; margin-top: 1px; }
+
+.regulatory-quote { background: #fff8e7; border-left: 4px solid var(--amber); padding: 12px 16px; border-radius: 6px; font-size: 12px; color: #5e4715; margin-top: 12px; font-style: italic; }
+</style>
 </head>
 <body>
-    <div class="app-wrapper">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h1 style="margin: 0; font-size: 22px; font-weight: 600;">EUDR Compliance Suite</h1>
-            {% if shop %}
-            <span style="font-size: 13px; color: #6d7175;">{{ shop.store_name|default:shop.shopify_domain }}</span>
-            {% endif %}
+<div class="layout">
+
+{% if shop %}
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="logo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L3 7v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V7l-9-5z"/><path d="M12 22V12"/><path d="M3 7l9 5 9-5"/></svg>
+            EUDR Suite
         </div>
-
-        {% if shop %}
-        <nav class="nav-tabs">
-            <a href="/?shop={{ shop.shopify_domain }}" class="{% if active_tab == 'dashboard' or not active_tab %}active{% endif %}">Dashboard</a>
-            <a href="/products?shop={{ shop.shopify_domain }}" class="{% if active_tab == 'products' %}active{% endif %}">Products</a>
-            <a href="/plots?shop={{ shop.shopify_domain }}" class="{% if active_tab == 'plots' %}active{% endif %}">Plots</a>
-            <a href="/dds?shop={{ shop.shopify_domain }}" class="{% if active_tab == 'dds' %}active{% endif %}">DDS</a>
-            <a href="/compliance?shop={{ shop.shopify_domain }}" class="{% if active_tab == 'compliance' %}active{% endif %}">Compliance</a>
-            <a href="/api-tokens?shop={{ shop.shopify_domain }}" class="{% if active_tab == 'api' %}active{% endif %}">API</a>
-            <a href="/settings?shop={{ shop.shopify_domain }}" class="{% if active_tab == 'settings' %}active{% endif %}">Settings</a>
-        </nav>
-        {% endif %}
-
-        {% block content %}{% endblock %}
+        <div class="sub">EU Regulation 2023/1115</div>
     </div>
 
-    <script>
-        (async function() {
-            if (!window.shopify) return;
-            const originalFetch = window.fetch;
-            window.fetch = async function(input, init) {
-                init = init || {};
-                let url;
-                try { url = new URL(typeof input === "string" ? input : input.url, window.location.origin); }
-                catch (e) { return originalFetch(input, init); }
-                if (url.origin === window.location.origin) {
-                    try {
-                        const token = await shopify.idToken();
-                        if (token) {
-                            const headers = new Headers(init.headers || {});
-                            headers.set("Authorization", "Bearer " + token);
-                            init.headers = headers;
-                        }
-                    } catch (e) { /* fall through */ }
+    <nav>
+        <a href="/?shop={{ shop.shopify_domain }}" class="{% if active_tab == 'dashboard' or not active_tab %}active{% endif %}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+            Dashboard
+        </a>
+
+        <div class="section-label">Catalog</div>
+        <a href="/products?shop={{ shop.shopify_domain }}" class="{% if active_tab == 'products' %}active{% endif %}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4 8 4 8-4z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg>
+            Products
+        </a>
+
+        <div class="section-label">Compliance</div>
+        <a href="/plots?shop={{ shop.shopify_domain }}" class="{% if active_tab == 'plots' %}active{% endif %}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-7 8-13a8 8 0 10-16 0c0 6 8 13 8 13z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            Geolocation plots
+        </a>
+        <a href="/dds?shop={{ shop.shopify_domain }}" class="{% if active_tab == 'dds' %}active{% endif %}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>
+            Due Diligence (DDS)
+        </a>
+        <a href="/compliance?shop={{ shop.shopify_domain }}" class="{% if active_tab == 'compliance' %}active{% endif %}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Compliance report
+        </a>
+
+        <div class="section-label">Account</div>
+        <a href="/settings?shop={{ shop.shopify_domain }}" class="{% if active_tab == 'settings' %}active{% endif %}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg>
+            Operator settings
+        </a>
+        <a href="/billing/select?shop={{ shop.shopify_domain }}" class="{% if active_tab == 'billing' %}active{% endif %}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            Plans &amp; billing
+        </a>
+        <a href="/api-tokens?shop={{ shop.shopify_domain }}" class="{% if active_tab == 'api' %}active{% endif %}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            REST API
+        </a>
+    </nav>
+
+    <div class="sidebar-foot">
+        <strong>{{ shop.store_name|default:shop.shopify_domain|truncatechars:24 }}</strong>
+        {{ shop.operator_country|default:"—" }} &middot; Plan: {{ shop.plan|capfirst }}
+    </div>
+</aside>
+{% endif %}
+
+<main class="main">
+    {% block content %}{% endblock %}
+</main>
+
+</div>
+
+<script>
+(async function() {
+    if (!window.shopify) return;
+    const originalFetch = window.fetch;
+    window.fetch = async function(input, init) {
+        init = init || {};
+        let url;
+        try { url = new URL(typeof input === "string" ? input : input.url, window.location.origin); }
+        catch (e) { return originalFetch(input, init); }
+        if (url.origin === window.location.origin) {
+            try {
+                const token = await shopify.idToken();
+                if (token) {
+                    const headers = new Headers(init.headers || {});
+                    headers.set("Authorization", "Bearer " + token);
+                    init.headers = headers;
                 }
-                return originalFetch(input, init);
-            };
-            try { shopify.loading(false); } catch(e) {}
-        })();
-    </script>
+            } catch (e) {}
+        }
+        return originalFetch(input, init);
+    };
+    try { shopify.loading(false); } catch(e) {}
+})();
+</script>
 </body>
 </html>

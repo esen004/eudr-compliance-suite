@@ -273,23 +273,60 @@ def dashboard(request):
     cache_key = f"dashboard:{shop.id}"
     ctx = cache.get(cache_key)
     if not ctx:
+        from datetime import date as _date
         in_scope = EUDRProduct.objects.filter(shop=shop, is_in_scope=True).count()
         compliant = EUDRProduct.objects.filter(shop=shop, is_compliant=True).count()
         total = EUDRProduct.objects.filter(shop=shop).count()
+        compliance_pct = int((compliant / in_scope) * 100) if in_scope else 0
+
+        # Countdown to EUDR enforcement (Dec 30, 2026)
+        enforcement = _date(2026, 12, 30)
+        days_remaining = max(0, (enforcement - _date.today()).days)
+
+        # Ring SVG geometry: circumference of r=55 circle = 2*pi*55 ≈ 345.4
+        ring_circumference = 345.4
+        ring_dashoffset = round(ring_circumference * (1 - compliance_pct / 100.0), 2)
+
+        # Distinct plot countries for map pins (up to 8)
+        plot_countries = list(
+            GeolocationPlot.objects.filter(shop=shop)
+            .values_list("country", flat=True)
+            .distinct()[:8]
+        )
+
+        # Recent activity for timeline (last 6 audit entries)
+        recent_activity = list(
+            ComplianceAudit.objects.filter(shop=shop)
+            .select_related("eudr_product", "dds")[:6]
+        )
+
         ctx = {
             "total_products": total,
             "in_scope": in_scope,
             "compliant": compliant,
             "non_compliant": in_scope - compliant,
-            "compliance_pct": int((compliant / in_scope) * 100) if in_scope else 0,
+            "compliance_pct": compliance_pct,
+            "ring_circumference": ring_circumference,
+            "ring_dashoffset": ring_dashoffset,
+            "days_remaining": days_remaining,
+            "enforcement_date": enforcement.strftime("%-d %b %Y") if hasattr(enforcement, "strftime") else "30 Dec 2026",
             "total_plots": GeolocationPlot.objects.filter(shop=shop).count(),
+            "plot_countries": plot_countries,
+            "plot_country_count": len(plot_countries),
             "dds_drafts": DueDiligenceStatement.objects.filter(shop=shop, status="draft").count(),
             "dds_submitted": DueDiligenceStatement.objects.filter(
                 shop=shop, status__in=["submitted", "verified"],
             ).count(),
+            "dds_issued_total": DueDiligenceStatement.objects.filter(
+                shop=shop, status__in=["submitted", "verified"],
+            ).count(),
+            "recent_activity": recent_activity,
             "operator_configured": bool(
                 shop.operator_name and shop.operator_country and shop.operator_address
             ),
+            "missing_data_count": EUDRProduct.objects.filter(
+                shop=shop, is_in_scope=True, is_compliant=False,
+            ).count(),
         }
         cache.set(cache_key, ctx, 60)
     ctx["shop"] = shop

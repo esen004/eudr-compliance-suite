@@ -2,70 +2,130 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+<h1>Compliance Dashboard</h1>
+<p class="subtitle">Real-time EUDR readiness across your Shopify catalog</p>
+
 {% if not operator_configured %}
-<div class="content-card" style="border-left: 4px solid #b98900; background: #fff8e1;">
-    <h2 style="margin: 0 0 6px;">Action required: complete your operator details</h2>
-    <p style="margin: 0 0 12px; color: #6d7175; font-size: 14px;">EUDR requires every operator placing relevant products on the EU market to be identified. Add your company name, address and EU country before generating Due Diligence Statements.</p>
-    <a href="/settings?shop={{ shop.shopify_domain }}" class="btn btn-primary">Configure operator</a>
+<div class="alert">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <div>
+        <h3>Action required: complete your operator details</h3>
+        <p>EUDR Article 4 requires every operator placing relevant products on the EU market to be identified. Add your company name, address and EU country before generating Due Diligence Statements. <a href="/settings?shop={{ shop.shopify_domain }}" style="font-weight: 700;">Configure operator →</a></p>
+    </div>
 </div>
 {% endif %}
 
-<div class="metric-grid">
-    <div class="metric-card">
-        <h3>Products synced</h3>
-        <div class="value">{{ total_products }}</div>
+<div class="countdown-hero">
+    <div>
+        <div class="law-tag">⚠ Regulation (EU) 2023/1115 — Article 34</div>
+        <h2>Enforcement window opens December 30, 2026</h2>
+        <p>Large and medium operators must submit a Due Diligence Statement before placing cattle, cocoa, coffee, palm oil, rubber, soya, or wood products on the EU market. Penalties up to 4% of EU annual turnover plus product seizure.</p>
     </div>
-    <div class="metric-card">
-        <h3>In EUDR scope</h3>
-        <div class="value">{{ in_scope }}</div>
-    </div>
-    <div class="metric-card">
-        <h3>Compliant</h3>
-        <div class="value good">{{ compliant }}</div>
-    </div>
-    <div class="metric-card">
-        <h3>Non-compliant</h3>
-        <div class="value danger">{{ non_compliant }}</div>
-    </div>
-    <div class="metric-card">
-        <h3>Compliance rate</h3>
-        <div class="value {% if compliance_pct >= 90 %}good{% elif compliance_pct >= 50 %}warning{% else %}danger{% endif %}">{{ compliance_pct }}%</div>
+    <div class="countdown-clock">
+        <div class="days">{{ days_remaining }}</div>
+        <div class="label">Days remaining</div>
+        <div class="date">until 30 Dec 2026</div>
     </div>
 </div>
 
-<div class="metric-grid">
-    <div class="metric-card">
-        <h3>Geolocation plots</h3>
-        <div class="value">{{ total_plots }}</div>
+<div class="score-grid">
+    <div class="score-ring-card">
+        <div class="ring">
+            <svg width="130" height="130" viewBox="0 0 130 130">
+                <circle class="track" cx="65" cy="65" r="55"/>
+                <circle class="progress" cx="65" cy="65" r="55" stroke-dasharray="{{ ring_circumference }}" stroke-dashoffset="{{ ring_dashoffset }}"/>
+            </svg>
+            <div class="pct">{{ compliance_pct }}%<small>compliant</small></div>
+        </div>
+        <div class="caption">{{ compliant }} of {{ in_scope }} in-scope products</div>
     </div>
-    <div class="metric-card">
-        <h3>DDS drafts</h3>
-        <div class="value">{{ dds_drafts }}</div>
+
+    <div class="stat-card">
+        <div class="icon icon-leaf">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4 8 4 8-4z"/><path d="M4 7v10l8 4 8-4V7"/></svg>
+        </div>
+        <h3>In-scope products</h3>
+        <div class="num">{{ in_scope }}</div>
+        <div class="delta">of {{ total_products }} synced</div>
     </div>
-    <div class="metric-card">
-        <h3>DDS submitted</h3>
-        <div class="value good">{{ dds_submitted }}</div>
+
+    <div class="stat-card">
+        <div class="icon icon-amber">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+        </div>
+        <h3>DDS issued</h3>
+        <div class="num">{{ dds_issued_total }}</div>
+        <div class="delta">{{ dds_drafts }} drafts pending</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="icon icon-rust">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <h3>Gaps</h3>
+        <div class="num {% if missing_data_count > 0 %}bad{% endif %}">{{ missing_data_count }}</div>
+        <div class="delta">products need data</div>
     </div>
 </div>
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-    <div class="content-card">
-        <h2>Quick actions</h2>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-            <a href="/sync?shop={{ shop.shopify_domain }}" class="btn btn-outline" style="justify-content: center;">Sync products from Shopify</a>
-            <a href="/products/bulk-classify?shop={{ shop.shopify_domain }}" class="btn btn-outline" style="justify-content: center;">Bulk classify products</a>
-            <a href="/plots/new?shop={{ shop.shopify_domain }}" class="btn btn-outline" style="justify-content: center;">Add geolocation plot</a>
-            <a href="/dds/new?shop={{ shop.shopify_domain }}" class="btn btn-outline" style="justify-content: center;">Create Due Diligence Statement</a>
-            <a href="/compliance?shop={{ shop.shopify_domain }}" class="btn btn-outline" style="justify-content: center;">View compliance report</a>
+<div class="grid-2">
+    <div class="panel">
+        <h2>Geolocation coverage <span class="article-ref">Art. 9</span></h2>
+        <div class="map-preview">
+            {% with cmap="22,53|56,78|78,40|66,28|38,30|28,58|14,45|72,62" %}
+            {% for country in plot_countries %}
+                {% with pos=cmap|slice:":" %}
+                <div class="map-pin" style="left: {% cycle '22%' '56%' '78%' '66%' '38%' '28%' '14%' '72%' as posX %}; top: {% cycle '53%' '78%' '40%' '28%' '30%' '58%' '45%' '62%' as posY %};">
+                    <div class="dot"></div>
+                    <div class="label">{{ country }}</div>
+                </div>
+                {% endwith %}
+            {% endfor %}
+            {% endwith %}
+        </div>
+        <div style="margin-top: 12px; display: flex; gap: 16px; font-size: 12px;">
+            <span><strong style="color: var(--forest);">{{ total_plots }}</strong> plots</span>
+            <span><strong style="color: var(--forest);">{{ plot_country_count }}</strong> countries</span>
         </div>
     </div>
 
-    <div class="content-card">
-        <h2>Storefront widget</h2>
-        <p style="color: #6d7175; font-size: 14px; margin: 0 0 12px;">Publish EUDR compliance metafields to all in-scope products so the theme widget displays manufacturer, due diligence reference and country of production on each product page.</p>
-        <form method="post" action="/widget/publish?shop={{ shop.shopify_domain }}">
+    <div class="panel">
+        <h2>Recent activity</h2>
+        {% if recent_activity %}
+        <div class="timeline">
+            {% for e in recent_activity %}
+            <div class="timeline-item">
+                <div class="when">{{ e.created_at|timesince }} ago</div>
+                <div class="what">{{ e.get_action_display|default:e.action }}{% if e.eudr_product %} — {{ e.eudr_product.title|truncatechars:50 }}{% endif %}{% if e.dds.eu_reference_number %} ({{ e.dds.eu_reference_number }}){% endif %}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: var(--slate); font-size: 13px;">No activity yet. Sync your products from Shopify to begin.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="panel">
+    <h2>Action items</h2>
+    {% if missing_data_count > 0 %}
+    <div class="alert">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div>
+            <h3>{{ missing_data_count }} products missing compliance data</h3>
+            <p>Articles 4(1) &amp; 8 of EUDR require commodity classification, geolocation, and a DDS per consignment before placing relevant products on the EU market.</p>
+        </div>
+    </div>
+    {% endif %}
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <a href="/sync?shop={{ shop.shopify_domain }}" class="btn btn-primary">Sync products from Shopify</a>
+        <a href="/products/bulk-classify?shop={{ shop.shopify_domain }}" class="btn btn-outline">Bulk classify</a>
+        <a href="/plots/new?shop={{ shop.shopify_domain }}" class="btn btn-outline">Add geolocation plot</a>
+        <a href="/dds/new?shop={{ shop.shopify_domain }}" class="btn btn-outline">Create DDS</a>
+        <a href="/compliance?shop={{ shop.shopify_domain }}" class="btn btn-outline">View compliance report</a>
+        <form method="post" action="/widget/publish?shop={{ shop.shopify_domain }}" style="display: inline;">
             {% csrf_token %}
-            <button type="submit" class="btn btn-primary" style="justify-content: center; width: 100%;">Publish widget data</button>
+            <button type="submit" class="btn btn-primary">Publish widget data</button>
         </form>
     </div>
 </div>
