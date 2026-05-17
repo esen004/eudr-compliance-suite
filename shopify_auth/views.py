@@ -162,6 +162,82 @@ def manual_setup(request):
     return HttpResponse(status=404)
 
 
+def token_exchange(shop_domain: str, session_token: str) -> str:
+    """Modern Shopify auth: trade a session token (JWT id_token) directly for an
+    offline access token. Replaces the legacy OAuth redirect flow which is
+    blocked by Shopify admin's iframe sandbox.
+
+    Returns the access_token string, or empty string on failure.
+    """
+    if not shop_domain or not session_token:
+        return ""
+    try:
+        resp = requests.post(
+            f"https://{shop_domain}/admin/oauth/access_token",
+            json={
+                "client_id": settings.SHOPIFY_API_KEY,
+                "client_secret": settings.SHOPIFY_API_SECRET,
+                "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+                "subject_token": session_token,
+                "subject_token_type": "urn:ietf:params:oauth:token-type:id_token",
+                "requested_token_type": "urn:shopify:params:oauth:token-type:offline-access-token",
+            },
+            timeout=15,
+        )
+        if resp.status_code != 200:
+            logger.error(
+                "Token exchange failed for %s: HTTP %d body=%s",
+                shop_domain, resp.status_code, resp.text[:300],
+            )
+            return ""
+        return resp.json().get("access_token", "")
+    except Exception as e:
+        logger.error("Token exchange exception for %s: %s", shop_domain, e)
+        return ""
+
+
+def ensure_shop_via_token_exchange(request) -> "Shop | None":
+    """If the current request has a valid Shopify session token but no Shop
+    record yet, perform Token Exchange to create one. Returns the Shop or None.
+    """
+    shop_domain = getattr(request, "shopify_shop_domain", None)
+    session_token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip() \
+        or request.GET.get("id_token", "").strip()
+
+    if not shop_domain or not session_token:
+        return None
+
+    try:
+        return Shop.objects.get(shopify_domain=shop_domain)
+    except Shop.DoesNotExist:
+        pass
+
+    access_token = token_exchange(shop_domain, session_token)
+    if not access_token:
+        return None
+
+    shop_obj, _created = Shop.objects.update_or_create(
+        shopify_domain=shop_domain,
+        defaults={
+            "access_token": access_token,
+            "is_active": True,
+            "uninstalled_at": None,
+        },
+    )
+
+    try:
+        _fetch_store_info(shop_obj)
+    except Exception:
+        pass
+    try:
+        _register_webhooks(shop_obj)
+    except Exception:
+        pass
+
+    request.session["shop_id"] = shop_obj.id
+    return shop_obj
+
+
 def _fetch_store_info(shop_obj):
     query = """{ shop { name email currencyCode } }"""
     data = _graphql(shop_obj, query)

@@ -260,15 +260,14 @@ def dashboard(request):
     """Dashboard — 200 response with App Bridge tags for Shopify's checker."""
     shop = _get_shop(request)
     if not shop:
-        # No Shop record found. Try every signal Shopify might send (?shop=,
-        # JWT iss, base64 host) to identify which store wants to install.
-        # If we can name a valid shop, kick off OAuth — even if Shopify thinks
-        # the app is "installed" on their side, our callback creates the DB row.
-        shop_domain = _resolve_shop_domain(request)
-        if _is_valid_shop(shop_domain):
-            return render(request, "exit_iframe.html", {
-                "redirect_url": f"/auth/install?shop={shop_domain}",
-            })
+        # No Shop record yet. If Shopify gave us a valid JWT (request loaded
+        # inside admin iframe with id_token=), do Token Exchange — no redirect
+        # dance needed. This replaces the legacy exit_iframe + OAuth flow which
+        # is blocked by admin's iframe sandbox.
+        from shopify_auth.views import ensure_shop_via_token_exchange
+        shop = ensure_shop_via_token_exchange(request)
+    if not shop:
+        # Outside the embedded admin (direct browser visit): show install form
         return render(request, "core/install_prompt.html")
 
     cache_key = f"dashboard:{shop.id}"
