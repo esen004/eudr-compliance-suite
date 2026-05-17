@@ -1,5 +1,5 @@
 # Placeholder — replace client_id after creating new Shopify Partner Dashboard app
-client_id = "REPLACE_WITH_NEW_APP_CLIENT_ID"
+client_id = "fc2edee575a5b7e57eab2030a4632065"
 name = "EUDR Compliance Suite"
 application_url = "https://eudr-compliance.onrender.com"
 embedded = true
