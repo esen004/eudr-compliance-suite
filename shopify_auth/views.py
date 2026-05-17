@@ -1,8 +1,9 @@
 import hashlib
 import hmac
 import json
+import logging
 import secrets
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 import requests
 from django.conf import settings
@@ -12,6 +13,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from core.models import Shop
+
+logger = logging.getLogger(__name__)
 
 
 def _exit_iframe_redirect(request, target_url):
@@ -25,18 +28,45 @@ def _exit_iframe_redirect(request, target_url):
 
 
 def _verify_hmac(query_params: dict, secret: str) -> bool:
-    """Verify Shopify HMAC signature on OAuth callback."""
-    params = dict(query_params)
-    received_hmac = params.pop("hmac", None)
+    """Verify Shopify HMAC signature on OAuth callback.
+
+    Tries both common Shopify encoding variations:
+    1. Raw sorted (older docs)
+    2. URL-encoded values per RFC 3986 (current Shopify implementation)
+
+    Always strips `hmac` and `signature` per Shopify spec.
+    """
+    params = {k: v for k, v in query_params.items() if k not in ("hmac", "signature")}
+    received_hmac = query_params.get("hmac", "")
     if not received_hmac:
         return False
-    sorted_params = "&".join(f"{k}={v}" for k, v in sorted(params.items()))
-    computed = hmac.new(
-        secret.encode("utf-8"),
-        sorted_params.encode("utf-8"),
-        hashlib.sha256,
-    ).hexdigest()
-    return hmac.compare_digest(computed, received_hmac)
+
+    secret_bytes = secret.encode("utf-8")
+
+    # Method 1: raw sorted (key=value joined with &, values as-is)
+    raw_msg = "&".join(f"{k}={v}" for k, v in sorted(params.items()))
+    raw_computed = hmac.new(secret_bytes, raw_msg.encode("utf-8"), hashlib.sha256).hexdigest()
+    if hmac.compare_digest(raw_computed, received_hmac):
+        return True
+
+    # Method 2: URL-encoded values (Shopify's current implementation per docs)
+    enc_msg = "&".join(f"{k}={quote(str(v), safe='')}" for k, v in sorted(params.items()))
+    enc_computed = hmac.new(secret_bytes, enc_msg.encode("utf-8"), hashlib.sha256).hexdigest()
+    if hmac.compare_digest(enc_computed, received_hmac):
+        return True
+
+    # Log just enough to diagnose without leaking secrets
+    logger.error(
+        "HMAC verify failed. recv=%s.., raw=%s.., enc=%s.., secret_set=%s, secret_len=%d, "
+        "keys=%s",
+        received_hmac[:8],
+        raw_computed[:8],
+        enc_computed[:8],
+        bool(secret),
+        len(secret) if secret else 0,
+        sorted(params.keys()),
+    )
+    return False
 
 
 def install(request):
