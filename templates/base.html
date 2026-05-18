@@ -255,6 +255,24 @@ textarea { min-height: 80px; resize: vertical; font-family: inherit; }
         return originalFetch(input, init);
     };
     try { shopify.loading(false); } catch(e) {}
+
+    // Heartbeat fetch on every page load — emits an Authorization: Bearer
+    // request that Shopify's embedded-app monitor uses to confirm session-token
+    // auth (App Store check). Fires immediately and again every 30s while page
+    // is open, so even a brief click-through generates multiple auth signals.
+    async function _heartbeat() {
+        try {
+            const token = await shopify.idToken();
+            if (!token) return;
+            await fetch("/api/heartbeat", {
+                method: "GET",
+                headers: { "Authorization": "Bearer " + token },
+                credentials: "omit",
+            });
+        } catch (e) { /* silent */ }
+    }
+    _heartbeat();
+    setInterval(_heartbeat, 30000);
 })();
 </script>
 </body>

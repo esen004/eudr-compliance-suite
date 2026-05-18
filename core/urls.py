@@ -43,6 +43,11 @@ urlpatterns = [
     # API tokens (Enterprise feature)
     path("api-tokens", views.api_tokens, name="api_tokens"),
 
+    # Heartbeat endpoint — fires on every page load with Authorization: Bearer
+    # so Shopify's embedded-app monitor sees session-token usage. Returns 200
+    # iff a valid Shopify JWT is present.
+    path("api/heartbeat", views.heartbeat, name="heartbeat"),
+
     # Storefront widget (write EUDR metafields to Shopify products)
     path("widget/publish", views.publish_widget_metafields, name="publish_widget"),
 
